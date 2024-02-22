@@ -1,0 +1,52 @@
+clear;clc;
+% Extract frames from video
+% v = ExtractVideo('test.mp4');
+[file,path] = uigetfile('*.mp4');
+obj = VideoReader(fullfile(path,file));
+v = obj.read();
+
+%%
+% Resize the image by 0.1 for faster processing
+% Convert RGB image to grayscale
+% Calculate the total intensity
+dim = size(v);
+
+V = uint8(zeros(dim(1),dim(2),3,dim(4)));
+G = uint8(zeros(dim(1),dim(2),dim(4))); %600 is # of frames in this vid
+d = zeros([1 dim(4)]);
+for i = 1:dim(4)
+    a = v(:,:,:,i);
+    V(:,:,:,i) = a;
+    g = rgb2gray(a);
+    G(:,:,i) = g;
+    d(i) = sum(sum(double(G(:,:,i))));
+end
+
+%%
+close
+figure(1)
+
+
+subplot(211); h1 = imshow(V(:,:,:,1));
+subplot(212); h2 = plot(0,d(1),'b-'); hold on
+
+
+
+
+for i = 2:dim(4)-1
+    time = (i-1)/obj.FrameRate;
+    
+    subplot(211)
+    set(h1,'CData',V(:,:,:,i))
+    drawnow
+    
+    subplot(212)
+    set(h2,'XData',0:1/30:time,'YData',d(1:i))
+    % Detect the upper peak of a signal
+    change = (d(i)-d(i-1))*(d(i+1)-d(i));
+    
+    
+    % frame = getframe(1);
+    % fr{i-1} = frame2im(frame);
+    drawnow
+end
